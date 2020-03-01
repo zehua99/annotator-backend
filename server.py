@@ -19,19 +19,26 @@ def write_back():
     d = [article for article in article_data if article['category'] == 'Question {}'.format(n_question)]
     with open('./data/q{}_train.json'.format(n_question), 'w') as f:
       f.write(json.dumps(d))
+    d = [article for article in article_data if article['category'] == 'Question {} test'.format(n_question)]
+    with open('./data/q{}_test.json'.format(n_question), 'w') as f:
+      f.write(json.dumps(d))
 
 article_data = []
 n_questions = 1
 for n_question in range(1, n_questions + 1):
-  with open('./data/q{}_train.json'.format(n_question)) as train_file:
-    json_data = json.load(train_file)
-    for j in json_data:
-      if j['answer'] == 1:
-        j.update(category='Question {}'.format(n_question))
-        if 'annotations' not in j:
-          j.update(annotations=[])
-        j['annotations'] = [initialize_annotation(annotation) for annotation in j['annotations']]
-        article_data.append(j)
+  for t in ['train', 'test']:
+    with open('./data/q{}_{}.json'.format(n_question, t)) as train_file:
+      json_data = json.load(train_file)
+      for j in json_data:
+        if j['answer'] == 1:
+          if t == 'train':
+            j.update(category='Question {}'.format(n_question))
+          else:
+            j.update(category='Question {} test'.format(n_question))
+          if 'annotations' not in j:
+            j.update(annotations=[])
+          j['annotations'] = [initialize_annotation(annotation) for annotation in j['annotations']]
+          article_data.append(j)
 write_back()
 
 def get_room_name(category, article_id):
@@ -63,7 +70,6 @@ def on_get_article(data):
 def on_join_article(data):
   category = data['category']
   article_id = data['articleId']
-
   join_room(get_room_name(category, article_id))
 
 @socketio.on('leave article')
