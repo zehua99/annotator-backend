@@ -1,6 +1,9 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit, send, join_room, leave_room, rooms
 import json
+from engineio.payload import Payload
+
+Payload.max_decode_packets = 50
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -145,9 +148,7 @@ def on_update_annotation_rank(data):
         return
       for j in range(0, len(article_data[i]['annotations'])):
         annotation = article_data[i]['annotations'][j]
-        print(annotation)
         if annotation['sentenceIndex'] == sentence_index and annotation['annotator'] == annotator:
-          print('found')
           article_data[i]['annotations'][j]['rank'] = rank
           room = join_room(get_room_name(category, article_id))
           emit('update annotation rank', ann, room=room, broadcast=True)
@@ -155,4 +156,4 @@ def on_update_annotation_rank(data):
           return
 
 if __name__ == '__main__':
-  socketio.run(app)
+  socketio.run(app, port=5000)
