@@ -24,13 +24,21 @@ def write_back():
       f.write(json.dumps(d))
 
 article_data = []
-n_questions = 1
+categories = []
+n_questions = 10
 for n_question in range(1, n_questions + 1):
   for t in ['train', 'test']:
+    categories.append('Question {}{}'.format(n_question, '' if t == 'train' else ' test'))
     with open('./data/q{}_{}.json'.format(n_question, t)) as train_file:
       json_data = json.load(train_file)
+      id = 1
       for j in json_data:
-        if j['answer'] == 1:
+        if 'id' not in j:
+          j.update({'id': id})
+          id += 1
+        if (n_question != 5 and j['answer'] == 1) or (n_question == 5 and j['answer'] == 0):
+          if n_question == 10 and j['question'] != 'Does the news release include unjustifiable, sensational language, including in the quotes of researchers?':
+            continue
           if t == 'train':
             j.update(category='Question {}'.format(n_question))
           else:
@@ -51,6 +59,10 @@ def ping():
 @socketio.on('connect')
 def connect():
   pass
+
+@socketio.on('refresh category list')
+def on_refresh_article_list():
+  return categories
 
 @socketio.on('refresh article list')
 def on_refresh_article_list(data):
