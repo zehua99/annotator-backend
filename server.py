@@ -69,6 +69,18 @@ def on_refresh_article_list(data):
   category = data['category']
   return [article['id'] for article in article_data if 'id' in article and article['category'] == category]
 
+@socketio.on('get annotated article count')
+def on_get_annotated_article_count(data):
+  annotator = data['annotator']
+  category = data['category']
+  count = 0
+  for item in [article for article in article_data if article['category'] == category]:
+    for annotation in item['annotations']:
+      if annotation['annotator'] == annotator:
+        count += 1
+        break
+  return count
+
 @socketio.on('get article')
 def on_get_article(data):
   category = data['category']
